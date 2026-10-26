@@ -1,0 +1,4 @@
+﻿<Solution>
+  <Project Path="MCPForUnity.Runtime.csproj" />
+  <Project Path="MCPForUnity.Editor.csproj" />
+</Solution>

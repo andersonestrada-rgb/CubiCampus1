@@ -23,6 +23,7 @@ public class LoadingManager : MonoBehaviour
 
     void Start()
     {
+        AudioManager.Ensure();
         StartCoroutine(CargarEscena());
     }
 

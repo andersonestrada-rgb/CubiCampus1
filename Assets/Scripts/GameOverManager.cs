@@ -70,6 +70,10 @@ public class GameOverManager : MonoBehaviour
     {
         ResolverReferencias();
 
+        AudioManager.Ensure();
+        AudioManager.SetMusicLevel(0.55f);
+        AudioManager.SetMusicDuck(false);
+
         if (btnReiniciar != null)
         {
             btnReiniciar.onClick.AddListener(Reintentar);
@@ -87,6 +91,8 @@ public class GameOverManager : MonoBehaviour
         AvanzarProgreso();
         RefrescarUI();
         RegistrarEnMarcadores();
+
+        AudioManager.Play(campanaCompletada ? Sfx.Victory : (victoria ? Sfx.Victory : Sfx.Defeat), 1f, 1f);
 
         if (panelPrincipal != null) panelPrincipal.alpha = 0f;
     }
@@ -362,6 +368,7 @@ public class GameOverManager : MonoBehaviour
         if (navegando) return;
         navegando = true;
 
+        AudioManager.Play(Sfx.UiClick, 0.9f, 1.05f);
         Time.timeScale = 1f;
 
         // Victoria normal: el dia ya quedo desbloqueado en AvanzarProgreso.
@@ -379,6 +386,7 @@ public class GameOverManager : MonoBehaviour
         if (navegando) return;
         navegando = true;
 
+        AudioManager.Play(Sfx.UiClick, 0.9f, 0.9f);
         Time.timeScale = 1f;
         SceneManager.LoadScene(escenaMenu);
     }

@@ -226,12 +226,16 @@ public class HUDGame : MonoBehaviour
     void SetPause(bool paused)
     {
         if (game == null || !game.IsPlaying) return;
+        if (game.IsPaused == paused) return;
+
+        AudioManager.Play(Sfx.UiClick, 0.9f, paused ? 0.82f : 1.15f);
         game.SetPaused(paused);
         if (panelPausa != null) panelPausa.SetActive(paused);
     }
 
     void VolverAlMenu()
     {
+        AudioManager.Play(Sfx.UiClick, 0.9f, 0.9f);
         Time.timeScale = 1f;
         SceneManager.LoadScene("MenuScene");
     }

@@ -237,6 +237,7 @@ public class Student : MonoBehaviour
         packMax = game != null ? Mathf.Max(0.5f, game.packDuration) : 2.6f;
         packLeft = packMax;
 
+        AudioManager.Play(Sfx.Pack, 0.9f, 1f);
         if (readyBox != null) readyBox.gameObject.SetActive(false);
         game.SetMessage("Clic repetido para que se vaya!", 1.4f);
     }
@@ -248,6 +249,8 @@ public class Student : MonoBehaviour
 
         float power = game != null ? Mathf.Max(0.05f, game.packClickPower) : 0.35f;
         packLeft -= power;
+
+        AudioManager.Play(Sfx.Pack, 0.7f, UnityEngine.Random.Range(1.05f, 1.22f));
 
         if (packLeft <= 0f)
         {
@@ -269,6 +272,7 @@ public class Student : MonoBehaviour
         attentionDone = true;
         needsAttention = true;
         attentionLeft = 5f;
+        AudioManager.Play(Sfx.Distraction, 0.85f, UnityEngine.Random.Range(0.95f, 1.05f));
         if (alertBox != null) alertBox.gameObject.SetActive(true);
     }
 
@@ -359,6 +363,7 @@ public class Student : MonoBehaviour
         transform.SetParent(null);
         if (col != null) col.enabled = false;
         game.SetDragOrder(this, true);
+        AudioManager.Play(Sfx.Pickup, 0.8f, UnityEngine.Random.Range(0.96f, 1.05f));
     }
 
     public void CancelDrag(Vector3 queuePosition)

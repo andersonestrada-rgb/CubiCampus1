@@ -79,6 +79,7 @@ public class GameManager : MonoBehaviour
     bool bonoAvailable = true;
     bool relocationAvailable = true;
     bool rush;
+    int lastTickSecond = -1;
 
     string message = "";
     float messageUntil;
@@ -173,6 +174,10 @@ public class GameManager : MonoBehaviour
     {
         Instance = this;
 
+        AudioManager.Ensure();
+        AudioManager.SetMusicLevel(0.62f);
+        AudioManager.SetMusicDuck(false);
+
         // La campana se juega en la misma sala: el dia guardado define turno,
         // mesas activas, ritmo de alumnos, apartados y paciencia.
         diaActual = DayProgression.DiaGuardado();
@@ -217,6 +222,8 @@ public class GameManager : MonoBehaviour
         apartadoTimer = Random.Range(apartadoMin, apartadoMax);
         Time.timeScale = 1f;
 
+        AudioManager.Play(Sfx.DayStart, 0.85f, 1f);
+
         SetMessage("DIA " + diaActual + ": meta " + Mathf.RoundToInt(configDia.umbralEficiencia) +
                    "%. Arrastra cada estudiante a su mesa", 5f);
     }
@@ -230,7 +237,17 @@ public class GameManager : MonoBehaviour
         if (!rush && timeLeft <= rushLastSeconds)
         {
             rush = true;
+            AudioManager.Play(Sfx.Rush, 0.9f, 1f);
+            AudioManager.SetMusicDuck(true);
             SetMessage("MODO RUSH: llegan mas estudiantes (la fila espera mas)", 3f);
+        }
+
+        int segundoActual = Mathf.CeilToInt(timeLeft);
+        if (segundoActual != lastTickSecond)
+        {
+            lastTickSecond = segundoActual;
+            if (segundoActual > 0 && segundoActual <= 10)
+                AudioManager.Play(Sfx.Tick, 0.7f, segundoActual <= 3 ? 1.25f : 1f);
         }
 
         if (freezeLeft > 0f) freezeLeft -= Time.deltaTime;
@@ -310,6 +327,7 @@ public class GameManager : MonoBehaviour
         {
             perfectStreak = 0;
             AddEfficiency(-effLossWrongSeat);
+            AudioManager.Play(Sfx.Error, 0.8f, 0.9f);
             SetMessage("Mesa inadecuada: ganaras menos puntos por " + s.profile.displayName, 2f);
             return;
         }
@@ -321,10 +339,12 @@ public class GameManager : MonoBehaviour
             perfectStreak = 0;
             comboLeft = 15f;
             bonoAvailable = true;
+            AudioManager.Play(Sfx.Combo, 1f, 1f);
             SetMessage("COMBO x2 durante 15s", 2.5f);
         }
         else
         {
+            AudioManager.Play(Sfx.Assign, 0.9f, 0.97f + 0.06f * (perfectStreak % 2));
             SetMessage("+" + s.profile.basePoints + " " + s.profile.displayName, 1.2f);
         }
     }
@@ -332,6 +352,8 @@ public class GameManager : MonoBehaviour
     public void RegisterHappy(Student s, float patienceFrac, bool pairBonus, bool withBonus)
     {
         int pts = s.profile.basePoints;
+
+        AudioManager.Play(Sfx.Happy, 0.85f, 0.92f + 0.14f * Mathf.Clamp01(patienceFrac));
 
         if (withBonus) pts += Mathf.RoundToInt(50f * Mathf.Clamp01(patienceFrac));
 
@@ -362,6 +384,7 @@ public class GameManager : MonoBehaviour
         comboLeft = 0f;
         score -= penaltyAbandon;
         AddEfficiency(-effLossAbandon);
+        AudioManager.Play(Sfx.Abandon, 1f, 1f);
         SetMessage("Abandono -" + penaltyAbandon, 1.8f);
     }
 
@@ -373,6 +396,7 @@ public class GameManager : MonoBehaviour
         comboLeft = 0f;
         score -= penaltyEarlyLeave;
         AddEfficiency(-effLossEarlyLeave);
+        AudioManager.Play(Sfx.EarlyLeave, 0.9f, 1f);
         SetMessage("Se distrajo y se fue -" + penaltyEarlyLeave, 1.8f);
     }
 
@@ -382,6 +406,7 @@ public class GameManager : MonoBehaviour
         perfectStreak = 0;
         score -= penaltyBadAssign;
         AddEfficiency(-effLossBadAssign);
+        AudioManager.Play(Sfx.Error, 0.85f, 1f);
         SetMessage("Mesa no disponible -" + penaltyBadAssign, 1.6f);
     }
 
@@ -390,6 +415,7 @@ public class GameManager : MonoBehaviour
         relocations++;
         relocationAvailable = false;
         score -= penaltyRelocate;
+        AudioManager.Play(Sfx.Error, 0.6f, 0.8f);
         SetMessage("Reubicacion -" + penaltyRelocate, 1.6f);
     }
 
@@ -397,6 +423,7 @@ public class GameManager : MonoBehaviour
     {
         score += 25;
         AddEfficiency(effGainAttention);
+        AudioManager.Play(Sfx.Attention, 1f, 1f);
         SetMessage("+25 atencion", 1.2f);
     }
 
@@ -423,6 +450,7 @@ public class GameManager : MonoBehaviour
 
         Seat target = candidates[Random.Range(0, candidates.Count)];
         target.Block();
+        AudioManager.Play(Sfx.Apartado, 1f, 1f);
         SetMessage("Apartado en la mesa " + target.seatId + "!", 2f);
     }
 
@@ -448,6 +476,7 @@ public class GameManager : MonoBehaviour
         if (nearest != null)
         {
             nearest.Contaminate(6f);
+            AudioManager.Play(Sfx.Apartado, 0.7f, 0.85f);
             SetMessage("El apartado contamino una mesa vecina", 2f);
         }
     }
@@ -464,6 +493,7 @@ public class GameManager : MonoBehaviour
             if (seats[i] != null) seats[i].ForceCleanAll();
         }
 
+        AudioManager.Play(Sfx.Bono, 1f, 1f);
         SetMessage("BONO DE SILENCIO: sala limpia y paciencia congelada 6s", 2.5f);
     }
 
@@ -485,6 +515,9 @@ public class GameManager : MonoBehaviour
     {
         if (!playing) return;
         playing = false;
+
+        AudioManager.Play(Sfx.Whistle, 1f, 1f);
+        AudioManager.SetMusicDuck(false);
 
         PlayerPrefs.SetInt("UltimoScore", score);
         PlayerPrefs.SetFloat("UltimaEficiencia", Efficiency);

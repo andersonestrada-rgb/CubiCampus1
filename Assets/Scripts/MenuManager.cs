@@ -65,10 +65,15 @@ public class MenuManager : MonoBehaviour
     readonly List<FilaMarcador> filas = new List<FilaMarcador>();
     int diaSeleccionado = 1;
     bool filasCreadas;
+    float proximoPreviewVolumen;
 
     void Awake()
     {
         ResolverReferencias();
+
+        AudioManager.Ensure();
+        AudioManager.SetMusicLevel(0.9f);
+        AudioManager.SetMusicDuck(false);
 
         if (panelMarcadores != null) panelMarcadores.SetActive(false);
         if (panelOpciones != null) panelOpciones.SetActive(false);
@@ -93,7 +98,7 @@ public class MenuManager : MonoBehaviour
             sliderVolumen.onValueChanged.AddListener(SetVolumen);
         }
 
-        AudioListener.volume = PlayerPrefs.GetFloat("Volumen", 0.8f);
+        AudioManager.SetMasterVolume(PlayerPrefs.GetFloat("Volumen", 0.8f));
     }
 
     void Start()
@@ -239,7 +244,11 @@ public class MenuManager : MonoBehaviour
 
             int dia = i + 1;
             botonesDia[i].onClick.RemoveAllListeners();
-            botonesDia[i].onClick.AddListener(delegate { SeleccionarDia(dia); });
+            botonesDia[i].onClick.AddListener(delegate
+            {
+                AudioManager.Play(Sfx.UiClick, 0.65f, 1.12f);
+                SeleccionarDia(dia);
+            });
         }
     }
 
@@ -496,6 +505,8 @@ public class MenuManager : MonoBehaviour
     {
         if (campoNombre != null) campoNombre.SoltarFoco();
 
+        AudioManager.Play(Sfx.UiClick, 0.9f, 1.05f);
+
         PlayerPrefs.SetString("EscenaDestino", sceneJuego);
         PlayerPrefs.Save();
         SceneManager.LoadScene(sceneCarga);
@@ -503,12 +514,14 @@ public class MenuManager : MonoBehaviour
 
     void OnMarcadoresClick()
     {
+        AudioManager.Play(Sfx.UiClick, 0.8f, 1.1f);
         if (panelOpciones != null) panelOpciones.SetActive(false);
         MostrarMarcadores();
     }
 
     void OnOpcionesClick()
     {
+        AudioManager.Play(Sfx.UiClick, 0.8f, 0.95f);
         if (campoNombre != null) campoNombre.SoltarFoco();
         if (panelMarcadores != null) panelMarcadores.SetActive(false);
         if (panelOpciones == null) return;
@@ -517,6 +530,7 @@ public class MenuManager : MonoBehaviour
 
     void OnSalirClick()
     {
+        AudioManager.Play(Sfx.UiClick, 0.8f, 0.8f);
         if (campoNombre != null) campoNombre.SoltarFoco();
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
@@ -527,18 +541,27 @@ public class MenuManager : MonoBehaviour
 
     public void CerrarPaneles()
     {
+        AudioManager.Play(Sfx.UiClick, 0.8f, 0.9f);
         if (panelMarcadores != null) panelMarcadores.SetActive(false);
         if (panelOpciones != null) panelOpciones.SetActive(false);
     }
 
     public void SetFullscreen(bool value)
     {
+        AudioManager.Play(Sfx.UiClick, 0.7f, value ? 1.2f : 1f);
         Screen.fullScreen = value;
     }
 
     public void SetVolumen(float value)
     {
-        AudioListener.volume = value;
+        AudioManager.SetMasterVolume(value);
         PlayerPrefs.SetFloat("Volumen", value);
+
+        // El slider apenas tiene sonido propio: un blip corto para oir el cambio.
+        if (Time.unscaledTime >= proximoPreviewVolumen && value > 0.01f)
+        {
+            proximoPreviewVolumen = Time.unscaledTime + 0.16f;
+            AudioManager.Play(Sfx.Tick, 0.85f, 1.4f);
+        }
     }
 }

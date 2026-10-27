@@ -415,6 +415,7 @@ public class Seat : MonoBehaviour
         {
             dirtAmount = 0f;
             RefreshVisual();
+            AudioManager.Play(Sfx.Clean, 0.9f, 1f);
             return true;
         }
 
@@ -453,6 +454,7 @@ public class Seat : MonoBehaviour
         blocked = false;
         blockedTime = 0f;
         RefreshVisual();
+        AudioManager.Play(Sfx.Clean, 0.75f, 0.8f);
     }
 
     public void ForceCleanAll()

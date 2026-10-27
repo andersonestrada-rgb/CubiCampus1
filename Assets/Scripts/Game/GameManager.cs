@@ -16,6 +16,12 @@ public class GameManager : MonoBehaviour
     public HUDGame hud;
     public DragAssigner dragAssigner;
 
+    [Header("Progresion de la campana")]
+    [Tooltip("Dia que se esta jugando (1..10). Se carga desde PlayerPrefs al iniciar.")]
+    public int diaActual = 1;
+    [Tooltip("Parametros del dia activo. Los aplica GameManager.Awake.")]
+    public DayConfig configDia;
+
     [Header("Turno")]
     public float turnDuration = 180f;
     public float rushLastSeconds = 30f;
@@ -84,6 +90,9 @@ public class GameManager : MonoBehaviour
     public bool IsPaused { get { return Time.timeScale <= 0f; } }
     public float TimeLeft { get { return Mathf.Max(0f, timeLeft); } }
     public float TurnDuration { get { return turnDuration; } }
+    public int Dia { get { return diaActual; } }
+    public DayConfig ConfigDia { get { return configDia; } }
+    public int TotalDias { get { return DayProgression.TotalDias; } }
     public int Score { get { return score; } }
     public int Happy { get { return happy; } }
     public int Arrived { get { return arrived; } }
@@ -98,7 +107,14 @@ public class GameManager : MonoBehaviour
     public float ComboLeft { get { return Mathf.Max(0f, comboLeft); } }
     public int PerfectStreak { get { return perfectStreak; } }
     // La eficiencia arranca en 100% y solo baja si la atencion es mala.
-    public bool IsAlert { get { return efficiency < 40f; } }
+    public bool IsAlert
+    {
+        get
+        {
+            float alerta = configDia != null ? configDia.umbralEficiencia * 0.55f : 40f;
+            return efficiency < alerta;
+        }
+    }
 
     public string Message
     {
@@ -115,7 +131,10 @@ public class GameManager : MonoBehaviour
         get
         {
             int total = 0;
-            for (int i = 0; i < seats.Count; i++) if (seats[i] != null) total += seats[i].capacity;
+            for (int i = 0; i < seats.Count; i++)
+            {
+                if (seats[i] != null && seats[i].gameObject.activeInHierarchy) total += seats[i].capacity;
+            }
             return total;
         }
     }
@@ -125,7 +144,10 @@ public class GameManager : MonoBehaviour
         get
         {
             int used = 0;
-            for (int i = 0; i < seats.Count; i++) if (seats[i] != null) used += seats[i].occupants.Count;
+            for (int i = 0; i < seats.Count; i++)
+            {
+                if (seats[i] != null && seats[i].gameObject.activeInHierarchy) used += seats[i].occupants.Count;
+            }
             return used;
         }
     }
@@ -150,6 +172,41 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
+
+        // La campana se juega en la misma sala: el dia guardado define turno,
+        // mesas activas, ritmo de alumnos, apartados y paciencia.
+        diaActual = DayProgression.DiaGuardado();
+        configDia = DayProgression.Get(diaActual);
+        AplicarConfigDia();
+    }
+
+    void AplicarConfigDia()
+    {
+        if (configDia == null) configDia = DayProgression.Get(1);
+
+        turnDuration = configDia.turnDuration;
+        rushLastSeconds = configDia.rushLastSeconds;
+        apartadoMin = configDia.apartadoMin;
+        apartadoMax = configDia.apartadoMax;
+
+        if (queue != null)
+        {
+            queue.spawnInterval = configDia.spawnInterval;
+            queue.firstSpawnDelay = configDia.firstSpawnDelay;
+            queue.weightLector = configDia.weightLector;
+            queue.weightTesis = configDia.weightTesis;
+            queue.weightGrupo = configDia.weightGrupo;
+            queue.weightDespistado = configDia.weightDespistado;
+            queue.maxDistracted = configDia.maxDistracted;
+        }
+
+        // Dias 1-2: solo los 4 cubiculos de silencio. Desde el dia 3 se abren
+        // las mesas dobles y la zona de ruido.
+        for (int i = 0; i < seats.Count; i++)
+        {
+            if (seats[i] == null) continue;
+            seats[i].gameObject.SetActive(i < configDia.activeSeats);
+        }
     }
 
     void Start()
@@ -159,7 +216,9 @@ public class GameManager : MonoBehaviour
         efficiency = Mathf.Clamp(efficiencyStart, 0f, 100f);
         apartadoTimer = Random.Range(apartadoMin, apartadoMax);
         Time.timeScale = 1f;
-        SetMessage("Arrastra cada estudiante a su mesa (si no es la correcta ganas menos puntos)", 5f);
+
+        SetMessage("DIA " + diaActual + ": meta " + Mathf.RoundToInt(configDia.umbralEficiencia) +
+                   "%. Arrastra cada estudiante a su mesa", 5f);
     }
 
     void Update()
@@ -229,7 +288,12 @@ public class GameManager : MonoBehaviour
     public StudentProfile GetProfile(StudentKind kind)
     {
         if (!profiles.ContainsKey(kind)) profiles[kind] = StudentProfile.Create(kind);
-        return profiles[kind].Clone();
+
+        StudentProfile p = profiles[kind].Clone();
+        // Los primeros dias son mas tolerantes con la fila.
+        float mult = configDia != null ? Mathf.Clamp(configDia.patienceMultiplier, 0.3f, 3f) : 1f;
+        p.patience *= mult;
+        return p;
     }
 
     // ------------------------------------------------------------------ registro
@@ -351,7 +415,8 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < seats.Count; i++)
         {
             Seat st = seats[i];
-            if (st != null && !st.blocked && st.occupants.Count == 0) candidates.Add(st);
+            if (st == null || !st.gameObject.activeInHierarchy) continue;
+            if (!st.blocked && st.occupants.Count == 0) candidates.Add(st);
         }
 
         if (candidates.Count == 0) return;
@@ -371,7 +436,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < seats.Count; i++)
         {
             Seat st = seats[i];
-            if (st == null || st == origin) continue;
+            if (st == null || st == origin || !st.gameObject.activeInHierarchy) continue;
             float d = Vector2.Distance(st.transform.position, origin.transform.position);
             if (d < best && d <= apartadoContaminationRadius)
             {
@@ -427,7 +492,9 @@ public class GameManager : MonoBehaviour
         PlayerPrefs.SetInt("UltimosAbandonos", abandoned);
         PlayerPrefs.SetInt("UltimosLlegados", arrived);
         PlayerPrefs.SetInt("UltimosPuntos", score);
-        PlayerPrefs.SetInt("UltimoDia", 1);
+        PlayerPrefs.SetInt("UltimoDia", diaActual);
+        // Identificador unico del turno: evita registrar dos veces la misma partida en el top-10.
+        PlayerPrefs.SetString("UltimoRunId", System.DateTime.UtcNow.Ticks + "-" + score);
         PlayerPrefs.Save();
 
         if (hud != null) hud.ShowEnd();

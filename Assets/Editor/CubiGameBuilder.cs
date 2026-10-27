@@ -189,6 +189,12 @@ public static class CubiGameBuilder
 
         hud.barraEficiencia = MakeBar(canvasT, "BarraEficiencia", new Vector2(1f, 1f), new Vector2(-40f, -74f), new Vector2(340f, 16f), new Color(0.35f, 0.90f, 0.45f));
 
+        GameObject diaGO = NewUI("TxtDia", canvasT);
+        Place(diaGO.GetComponent<RectTransform>(), new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-40f, 150f), new Vector2(620f, 36f));
+        Text txtDia = AddText(diaGO, "DIA 1 / 10   -   META 60%", 22, TextAnchor.MiddleRight, ColTextoTenue);
+        txtDia.fontStyle = FontStyle.Bold;
+        hud.txtDia = txtDia;
+
         GameObject comboGO = NewUI("TxtCombo", canvasT);
         Place(comboGO.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(42f, -80f), new Vector2(420f, 38f));
         Text txtCombo = AddText(comboGO, "RACHA 0 / 3", 24, TextAnchor.MiddleLeft, ColTextoTenue);

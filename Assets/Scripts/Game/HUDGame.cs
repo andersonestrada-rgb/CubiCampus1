@@ -15,6 +15,7 @@ public class HUDGame : MonoBehaviour
     public Text txtPuntos;
     public Text txtTiempo;
     public Text txtEficiencia;
+    public Text txtDia;
     public Text txtAforo;
     public Text txtAbandonos;
     public Text txtCombo;
@@ -57,6 +58,7 @@ public class HUDGame : MonoBehaviour
         UpdateClock();
         UpdateScore();
         UpdateEfficiency();
+        UpdateDia();
         UpdateAforo();
         UpdateCombo();
         UpdateHint();
@@ -103,12 +105,13 @@ public class HUDGame : MonoBehaviour
     void UpdateEfficiency()
     {
         float eff = game.Efficiency;
+        float meta = game.ConfigDia != null ? game.ConfigDia.umbralEficiencia : 75f;
 
         if (txtEficiencia != null) txtEficiencia.text = "EFICIENCIA  " + Mathf.RoundToInt(eff) + "%";
 
         Color c;
-        if (eff >= 75f) c = new Color(0.35f, 0.90f, 0.45f);
-        else if (eff >= 40f) c = new Color(0.98f, 0.78f, 0.25f);
+        if (eff >= meta) c = new Color(0.35f, 0.90f, 0.45f);
+        else if (eff >= meta * 0.55f) c = new Color(0.98f, 0.78f, 0.25f);
         else c = new Color(1f, 0.32f, 0.32f);
 
         if (barraEficiencia != null)
@@ -118,6 +121,20 @@ public class HUDGame : MonoBehaviour
         }
 
         if (txtEficiencia != null) txtEficiencia.color = c;
+    }
+
+    void UpdateDia()
+    {
+        if (txtDia == null) return;
+
+        if (game.ConfigDia == null)
+        {
+            txtDia.text = "";
+            return;
+        }
+
+        txtDia.text = "DIA " + game.Dia + " / " + game.TotalDias +
+                      "   -   META " + Mathf.RoundToInt(game.ConfigDia.umbralEficiencia) + "%";
     }
 
     void UpdateAforo()
@@ -225,7 +242,7 @@ public class HUDGame : MonoBehaviour
         if (txtEstado != null)
         {
             txtEstado.gameObject.SetActive(true);
-            txtEstado.text = "TURNO FINALIZADO\nEficiencia " + Mathf.RoundToInt(game.Efficiency) + "%  |  " + game.Score + " pts";
+            txtEstado.text = "DIA " + game.Dia + " FINALIZADO\nEficiencia " + Mathf.RoundToInt(game.Efficiency) + "%  |  " + game.Score + " pts";
         }
         if (btnBono != null) btnBono.interactable = false;
         if (btnPausa != null) btnPausa.interactable = false;

@@ -69,20 +69,56 @@ public static class CubiMenuBuilder
         // --- Título ---
         GameObject tituloGO = NewUI("Titulo", canvasT);
         RectTransform tituloRT = tituloGO.GetComponent<RectTransform>();
-        Center(tituloRT, new Vector2(0f, 350f), new Vector2(1100f, 120f));
+        Center(tituloRT, new Vector2(0f, 360f), new Vector2(1100f, 120f));
         Text titulo = AddText(tituloGO, "CUBI-CAMPUS", 78, TextAnchor.MiddleCenter, ColTexto);
         titulo.fontStyle = FontStyle.Bold;
 
         GameObject subtituloGO = NewUI("Subtitulo", canvasT);
         RectTransform subRT = subtituloGO.GetComponent<RectTransform>();
-        Center(subRT, new Vector2(0f, 262f), new Vector2(1000f, 60f));
+        Center(subRT, new Vector2(0f, 278f), new Vector2(1000f, 60f));
         AddText(subtituloGO, "AFORO AL LIMITE", 30, TextAnchor.MiddleCenter, ColTextoTenue);
 
+        GameObject progresoGO = NewUI("TxtProgreso", canvasT);
+        RectTransform progresoRT = progresoGO.GetComponent<RectTransform>();
+        Center(progresoRT, new Vector2(0f, 218f), new Vector2(900f, 40f));
+        Text txtProgreso = AddText(progresoGO, "CAMPANA  -  DIA 1 / 10   |   META 60%", 24, TextAnchor.MiddleCenter, ColTexto);
+        txtProgreso.fontStyle = FontStyle.Bold;
+
+        // --- Nombre del jugador ---
+        GameObject nombreLabelGO = NewUI("LabelNombre", canvasT);
+        RectTransform nombreLabelRT = nombreLabelGO.GetComponent<RectTransform>();
+        Center(nombreLabelRT, new Vector2(0f, 158f), new Vector2(620f, 28f));
+        Text nombreLabel = AddText(nombreLabelGO, "TU NOMBRE", 22, TextAnchor.MiddleCenter, ColTextoTenue);
+        nombreLabel.fontStyle = FontStyle.Bold;
+
+        GameObject nombreGO = NewUI("NombreInput", canvasT);
+        RectTransform nombreRT = nombreGO.GetComponent<RectTransform>();
+        Center(nombreRT, new Vector2(0f, 112f), new Vector2(520f, 64f));
+        Image nombreBorde = AddImage(nombreGO, new Color(0.30f, 0.34f, 0.46f, 1f));
+
+        GameObject nombreFondoGO = NewUI("Fondo", nombreGO.transform);
+        RectTransform nombreFondoRT = nombreFondoGO.GetComponent<RectTransform>();
+        Stretch(nombreFondoRT, new Vector2(3f, 3f), new Vector2(-3f, -3f));
+        Image nombreFondo = AddImage(nombreFondoGO, new Color(0.13f, 0.14f, 0.20f, 1f));
+        nombreFondo.raycastTarget = false;
+
+        GameObject nombreValorGO = NewUI("Valor", nombreGO.transform);
+        RectTransform nombreValorRT = nombreValorGO.GetComponent<RectTransform>();
+        Stretch(nombreValorRT, new Vector2(24f, 4f), new Vector2(-24f, -4f));
+        Text nombreValor = AddText(nombreValorGO, "ALEX MONITOR", 30, TextAnchor.MiddleLeft, ColTexto);
+        nombreValor.horizontalOverflow = HorizontalWrapMode.Overflow;
+
+        NameInputField campoNombre = nombreGO.AddComponent<NameInputField>();
+        campoNombre.txtValor = nombreValor;
+        campoNombre.fondo = nombreFondo;
+        campoNombre.borde = nombreBorde;
+        campoNombre.maxLength = LeaderboardStore.MaxNombre;
+
         // --- Botones principales ---
-        Button btnJugar      = MakeButton(canvasT, "BtnJugar", "JUGAR", ColBoton, new Vector2(0f, 120f), new Vector2(440f, 80f), 32);
-        Button btnMarcadores = MakeButton(canvasT, "BtnMarcadores", "MARCADORES", ColBoton, new Vector2(0f, 20f), new Vector2(440f, 80f), 32);
-        Button btnOpciones   = MakeButton(canvasT, "BtnOpciones", "OPCIONES", ColBoton, new Vector2(0f, -80f), new Vector2(440f, 80f), 32);
-        Button btnSalir      = MakeButton(canvasT, "BtnSalir", "SALIR", ColBotonRojo, new Vector2(0f, -200f), new Vector2(440f, 80f), 32);
+        Button btnJugar      = MakeButton(canvasT, "BtnJugar", "JUGAR  -  DIA 1", ColBoton, new Vector2(0f, 26f), new Vector2(440f, 80f), 30);
+        Button btnMarcadores = MakeButton(canvasT, "BtnMarcadores", "MARCADORES", ColBoton, new Vector2(0f, -76f), new Vector2(440f, 80f), 32);
+        Button btnOpciones   = MakeButton(canvasT, "BtnOpciones", "OPCIONES", ColBoton, new Vector2(0f, -178f), new Vector2(440f, 80f), 32);
+        Button btnSalir      = MakeButton(canvasT, "BtnSalir", "SALIR", ColBotonRojo, new Vector2(0f, -280f), new Vector2(440f, 80f), 32);
 
         // --- Panel Marcadores ---
         GameObject panelMarcadores = NewUI("PanelMarcadores", canvasT);
@@ -91,22 +127,70 @@ public static class CubiMenuBuilder
 
         GameObject contMarc = NewUI("ContenedorMarcadores", panelMarcadores.transform);
         RectTransform contMarcRT = contMarc.GetComponent<RectTransform>();
-        Center(contMarcRT, Vector2.zero, new Vector2(1000f, 720f));
+        Center(contMarcRT, Vector2.zero, new Vector2(1600f, 960f));
         AddImage(contMarc, ColPanel);
 
         GameObject tituloMarcGO = NewUI("TituloMarcadores", contMarc.transform);
         RectTransform tituloMarcRT = tituloMarcGO.GetComponent<RectTransform>();
-        Center(tituloMarcRT, new Vector2(0f, 290f), new Vector2(880f, 80f));
+        Center(tituloMarcRT, new Vector2(0f, 430f), new Vector2(1000f, 60f));
         Text tituloMarc = AddText(tituloMarcGO, "MARCADORES", 46, TextAnchor.MiddleCenter, ColTexto);
         tituloMarc.fontStyle = FontStyle.Bold;
 
-        GameObject txtMarcGO = NewUI("TxtMarcadoresPanel", contMarc.transform);
-        RectTransform txtMarcRT = txtMarcGO.GetComponent<RectTransform>();
-        Center(txtMarcRT, new Vector2(0f, 0f), new Vector2(900f, 500f));
-        Text txtMarc = AddText(txtMarcGO, "Aun no hay puntajes registrados.", 26, TextAnchor.MiddleCenter, ColTexto);
-        txtMarc.lineSpacing = 1.25f;
+        GameObject subMarcGO = NewUI("SubTituloMarcadores", contMarc.transform);
+        Center(subMarcGO.GetComponent<RectTransform>(), new Vector2(0f, 386f), new Vector2(1300f, 30f));
+        Text subMarc = AddText(subMarcGO, "DIA 1 / 10   -   META 60%   -   TOP 20", 22, TextAnchor.MiddleCenter, ColTextoTenue);
+        subMarc.fontStyle = FontStyle.Bold;
 
-        Button btnCerrarMarcadores = MakeButton(contMarc.transform, "BtnCerrarMarcadores", "CERRAR", ColBoton, new Vector2(0f, -300f), new Vector2(240f, 64f), 26);
+        // Pestañas: una seccion por dia, cada una con su propio top.
+        Button[] botonesDia = new Button[DayProgression.TotalDias];
+        for (int d = 0; d < DayProgression.TotalDias; d++)
+        {
+            float x = -702f + d * 156f;
+            botonesDia[d] = MakeButton(contMarc.transform, "BtnDia" + (d + 1), "DIA " + (d + 1),
+                new Color(0.15f, 0.19f, 0.29f, 1f), new Vector2(x, 326f), new Vector2(148f, 52f), 20);
+        }
+
+        // Cabecera de columnas, alineada con las filas que crea MenuManager.
+        GameObject cabPuestoGO = NewUI("CabPuesto", contMarc.transform);
+        Center(cabPuestoGO.GetComponent<RectTransform>(), new Vector2(-672f, 268f), new Vector2(80f, 26f));
+        Text cabPuesto = AddText(cabPuestoGO, "PUESTO", 18, TextAnchor.MiddleCenter, ColTextoTenue);
+        cabPuesto.fontStyle = FontStyle.Bold;
+
+        GameObject cabNombreGO = NewUI("CabNombre", contMarc.transform);
+        Center(cabNombreGO.GetComponent<RectTransform>(), new Vector2(-305f, 268f), new Vector2(660f, 26f));
+        Text cabNombre = AddText(cabNombreGO, "JUGADOR", 18, TextAnchor.MiddleLeft, ColTextoTenue);
+        cabNombre.fontStyle = FontStyle.Bold;
+
+        GameObject cabPuntosGO = NewUI("CabPuntos", contMarc.transform);
+        Center(cabPuntosGO.GetComponent<RectTransform>(), new Vector2(330f, 268f), new Vector2(260f, 26f));
+        Text cabPuntos = AddText(cabPuntosGO, "PUNTOS", 18, TextAnchor.MiddleRight, ColTextoTenue);
+        cabPuntos.fontStyle = FontStyle.Bold;
+
+        GameObject cabEficGO = NewUI("CabEficiencia", contMarc.transform);
+        Center(cabEficGO.GetComponent<RectTransform>(), new Vector2(630f, 268f), new Vector2(170f, 26f));
+        Text cabEfic = AddText(cabEficGO, "EFIC.", 18, TextAnchor.MiddleRight, ColTextoTenue);
+        cabEfic.fontStyle = FontStyle.Bold;
+
+        GameObject sepMarcGO = NewUI("SeparadorMarcadores", contMarc.transform);
+        Center(sepMarcGO.GetComponent<RectTransform>(), new Vector2(0f, 248f), new Vector2(1440f, 2f));
+        AddImage(sepMarcGO, new Color(0.24f, 0.27f, 0.36f, 1f)).raycastTarget = false;
+
+        // La lista se llena en runtime con 20 filas reutilizables.
+        GameObject listaMarcGO = NewUI("ListaMarcadores", contMarc.transform);
+        RectTransform listaMarcRT = listaMarcGO.GetComponent<RectTransform>();
+        Center(listaMarcRT, new Vector2(0f, -72f), new Vector2(1440f, 600f));
+
+        GameObject vacioMarcGO = NewUI("TxtVacioMarcadores", listaMarcGO.transform);
+        Center(vacioMarcGO.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(1200f, 160f));
+        Text vacioMarc = AddText(vacioMarcGO, "AUN NO HAY MARCAS EN ESTE DIA\nSE EL PRIMERO EN ENTRAR AL TOP", 28, TextAnchor.MiddleCenter, ColTextoTenue);
+        vacioMarc.lineSpacing = 1.3f;
+
+        GameObject tuPuestoGO = NewUI("TxtTuPuesto", contMarc.transform);
+        Center(tuPuestoGO.GetComponent<RectTransform>(), new Vector2(0f, -404f), new Vector2(1400f, 26f));
+        Text tuPuestoTxt = AddText(tuPuestoGO, "ALEX MONITOR   -   SIN MARCA EN ESTE DIA", 24, TextAnchor.MiddleCenter, ColTextoTenue);
+        tuPuestoTxt.fontStyle = FontStyle.Bold;
+
+        Button btnCerrarMarcadores = MakeButton(contMarc.transform, "BtnCerrarMarcadores", "CERRAR", ColBoton, new Vector2(0f, -446f), new Vector2(240f, 50f), 24);
 
         // --- Panel Opciones ---
         GameObject panelOpciones = NewUI("PanelOpciones", canvasT);
@@ -214,8 +298,15 @@ public static class CubiMenuBuilder
         mm.btnMarcadores = btnMarcadores;
         mm.btnOpciones = btnOpciones;
         mm.btnSalir = btnSalir;
+        mm.txtProgreso = txtProgreso;
+        mm.campoNombre = campoNombre;
         mm.panelMarcadores = panelMarcadores;
-        mm.txtMarcadores = txtMarc;
+        mm.txtTituloMarcadores = tituloMarc;
+        mm.txtSubtituloMarcadores = subMarc;
+        mm.listaMarcadores = listaMarcRT;
+        mm.txtVacioMarcadores = vacioMarc;
+        mm.txtTuPuesto = tuPuestoTxt;
+        mm.botonesDia = botonesDia;
         mm.btnCerrarMarcadores = btnCerrarMarcadores;
         mm.panelOpciones = panelOpciones;
         mm.toggleFullscreen = toggle;

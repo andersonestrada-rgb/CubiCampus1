@@ -21,6 +21,10 @@ public class QueueManager : MonoBehaviour
     [Range(0f, 1f)] public float weightGrupo = 0.26f;
     [Range(0f, 1f)] public float weightDespistado = 0.22f;
 
+    [Header("Progresion")]
+    [Tooltip("Maximo de despistados a la vez entre fila y mesas (2 en los dias 8-10).")]
+    public int maxDistracted = 1;
+
     public List<Student> Students { get { return students; } }
 
     readonly List<Student> students = new List<Student>();
@@ -104,11 +108,70 @@ public class QueueManager : MonoBehaviour
         if (total <= 0f) return StudentKind.Lector;
 
         float r = Random.value * total;
+        StudentKind kind;
+        if (r < weightLector) kind = StudentKind.Lector;
+        else
+        {
+            r -= weightLector;
+            if (r < weightTesis) kind = StudentKind.Tesis;
+            else
+            {
+                r -= weightTesis;
+                kind = r < weightGrupo ? StudentKind.GrupoRuidoso : StudentKind.Despistado;
+            }
+        }
+
+        // Limite de despistados simultaneos: si ya hay el maximo, llega otro tipo.
+        if (kind == StudentKind.Despistado && maxDistracted > 0 && CountDistracted() >= maxDistracted)
+            kind = PickNonDistracted();
+
+        return kind;
+    }
+
+    StudentKind PickNonDistracted()
+    {
+        float total = weightLector + weightTesis + weightGrupo;
+        if (total <= 0f) return StudentKind.Lector;
+
+        float r = Random.value * total;
         if (r < weightLector) return StudentKind.Lector;
         r -= weightLector;
         if (r < weightTesis) return StudentKind.Tesis;
-        r -= weightTesis;
-        if (r < weightGrupo) return StudentKind.GrupoRuidoso;
-        return StudentKind.Despistado;
+        return StudentKind.GrupoRuidoso;
+    }
+
+    /// <summary>Despistados vivos entre la fila y las mesas.</summary>
+    int CountDistracted()
+    {
+        int n = 0;
+
+        for (int i = 0; i < students.Count; i++)
+        {
+            Student s = students[i];
+            if (IsCountableDistracted(s)) n++;
+        }
+
+        if (game != null)
+        {
+            for (int i = 0; i < game.seats.Count; i++)
+            {
+                Seat st = game.seats[i];
+                if (st == null) continue;
+                for (int j = 0; j < st.occupants.Count; j++)
+                {
+                    if (IsCountableDistracted(st.occupants[j])) n++;
+                }
+            }
+        }
+
+        return n;
+    }
+
+    static bool IsCountableDistracted(Student s)
+    {
+        if (s == null || s.profile == null) return false;
+        if (s.profile.kind != StudentKind.Despistado) return false;
+        if (s.state == StudentState.Leaving || s.state == StudentState.Gone) return false;
+        return true;
     }
 }

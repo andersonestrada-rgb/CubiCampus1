@@ -44,7 +44,7 @@ public class DragAssigner : MonoBehaviour
         if (dragging != null && (dragging.state == StudentState.Gone || dragging.state == StudentState.Leaving))
         {
             dragging = null;
-            ClearHover();
+            ClearAllHighlights();
             return;
         }
 
@@ -213,6 +213,41 @@ public class DragAssigner : MonoBehaviour
         relocateMode = relocate;
         dragOffset = st.transform.position - world;
         st.BeginDrag();
+        ShowAllHighlights(st);
+    }
+
+    // ------------------------------------------------------------------ resaltado de arrastre
+
+    void ShowAllHighlights(Student st)
+    {
+        if (st == null || st.profile == null) return;
+
+        Seat[] all = Object.FindObjectsOfType<Seat>(true);
+        for (int i = 0; i < all.Length; i++)
+        {
+            Seat s = all[i];
+            if (s == null) continue;
+            if (relocateMode && st.seat == s) { s.ClearDragHighlight(); continue; }
+
+            if (s.CanAccept(st.profile))
+            {
+                s.SetDragHighlight(true, s.MatchesProfile(st.profile));
+            }
+            else
+            {
+                s.ClearDragHighlight();
+            }
+        }
+    }
+
+    void ClearAllHighlights()
+    {
+        Seat[] all = Object.FindObjectsOfType<Seat>(true);
+        for (int i = 0; i < all.Length; i++)
+        {
+            if (all[i] != null) all[i].ClearDragHighlight();
+        }
+        hoverSeat = null;
     }
 
     void UpdateHover(Vector3 world)
@@ -254,7 +289,7 @@ public class DragAssigner : MonoBehaviour
         Seat seat = FindSeat(world);
         Student st = dragging;
         dragging = null;
-        ClearHover();
+        ClearAllHighlights();
 
         if (st == null) return;
         if (st.state == StudentState.Leaving || st.state == StudentState.Gone) return;
@@ -327,7 +362,7 @@ public class DragAssigner : MonoBehaviour
     {
         Student st = dragging;
         dragging = null;
-        ClearHover();
+        ClearAllHighlights();
 
         if (st == null) return;
         if (st.state == StudentState.Leaving || st.state == StudentState.Gone) return;

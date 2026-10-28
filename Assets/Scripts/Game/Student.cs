@@ -72,11 +72,11 @@ public class Student : MonoBehaviour
         go.transform.position = position;
 
         Student s = go.AddComponent<Student>();
-        s.Setup(profile, game, queue);
+        s.SetupFromProfile(profile, game, queue);
         return s;
     }
 
-    void Setup(StudentProfile p, GameManager g, QueueManager q)
+    public void SetupFromProfile(StudentProfile p, GameManager g, QueueManager q)
     {
         profile = p;
         game = g;
@@ -87,8 +87,11 @@ public class Student : MonoBehaviour
         studyMax = p.studyTime;
         studyLeft = p.studyTime;
         bobPhase = Random.Range(0f, 6.28f);
-
-        BuildVisual();
+        attentionDone = false;
+        needsAttention = false;
+        wrongSeat = false;
+        readyPenalized = false;
+        if (visual == null) BuildVisual();
     }
 
     void BuildVisual()

@@ -79,9 +79,18 @@ public class AudioManager : MonoBehaviour
         if (UnityEngine.Object.FindAnyObjectByType<AudioListener>() == null)
             gameObject.AddComponent<AudioListener>();
 
+        CargarConfig();
         CrearFuentes();
         Construir();
         ReproducirMusica();
+    }
+
+    void CargarConfig()
+    {
+        if (AudioConfig.Instance != null) return;
+        AudioConfig cfg = Resources.Load<AudioConfig>("Audio/AudioConfig");
+        if (cfg != null)
+            AudioConfig.Instance = cfg;
     }
 
     void OnDestroy()
@@ -139,11 +148,27 @@ public class AudioManager : MonoBehaviour
 
     void Sonar(Sfx sfx, float volumen, float tono)
     {
-        AudioClip clip;
-        if (fuenteSfx == null || !banco.TryGetValue(sfx, out clip) || clip == null) return;
+        if (fuenteSfx == null) return;
 
-        fuenteSfx.pitch = Mathf.Clamp(tono, 0.4f, 2.2f);
-        fuenteSfx.PlayOneShot(clip, Mathf.Clamp01(volumen) * volumenSfx);
+        SfxEntry e = null;
+        if (AudioConfig.Instance != null) e = AudioConfig.Instance.Get(sfx);
+
+        if (e != null && e.clip != null)
+        {
+            float p = e.pitch * tono;
+            if (e.usarPitchAleatorio)
+                p *= UnityEngine.Random.Range(1f - e.variacionPitch, 1f + e.variacionPitch);
+            fuenteSfx.pitch = Mathf.Clamp(p, 0.4f, 2.2f);
+            fuenteSfx.PlayOneShot(e.clip, Mathf.Clamp01(volumen * e.volumen) * volumenSfx);
+            return;
+        }
+
+        AudioClip clip;
+        if (banco.TryGetValue(sfx, out clip) && clip != null)
+        {
+            fuenteSfx.pitch = Mathf.Clamp(tono, 0.4f, 2.2f);
+            fuenteSfx.PlayOneShot(clip, Mathf.Clamp01(volumen) * volumenSfx);
+        }
     }
 
     /// <summary>Volumen relativo de la musica segun la escena (menu, partida, resultados).</summary>

@@ -12,6 +12,9 @@ public class QueueManager : MonoBehaviour
     public Transform doorPoint;
     public Transform[] slots;
 
+    [Header("Prefab")]
+    public GameObject estudiantePrefab;
+
     [Header("Balance")]
     public float spawnInterval = 8f;
     public float firstSpawnDelay = 1.2f;
@@ -71,7 +74,19 @@ public class QueueManager : MonoBehaviour
         if (profile == null) profile = StudentProfile.Create(kind);
 
         Vector3 spawnPos = doorPoint != null ? doorPoint.position : new Vector3(-6f, -3.5f, 0f);
-        Student s = Student.Create(profile, spawnPos, game, this);
+        Student s = null;
+
+        if (estudiantePrefab != null)
+        {
+            GameObject go = Instantiate(estudiantePrefab, spawnPos, Quaternion.identity);
+            s = go.GetComponent<Student>();
+            if (s == null) s = go.AddComponent<Student>();
+            s.SetupFromProfile(profile, game, this);
+        }
+        else
+        {
+            s = Student.Create(profile, spawnPos, game, this);
+        }
 
         students.Add(s);
         int index = students.Count - 1;

@@ -30,6 +30,7 @@ public class MenuManager : MonoBehaviour
     public GameObject panelOpciones;
     public Toggle toggleFullscreen;
     public Slider sliderVolumen;
+    public Toggle toggleTutorial;
     public Button btnCerrarOpciones;
 
     [Header("Configuracion")]
@@ -89,7 +90,18 @@ public class MenuManager : MonoBehaviour
         if (toggleFullscreen != null)
         {
             toggleFullscreen.isOn = Screen.fullScreen;
-            toggleFullscreen.onValueChanged.AddListener(SetFullscreen);
+            toggleFullscreen.onValueChanged.AddListener(val => {
+                Screen.fullScreen = val;
+                PlayerPrefs.SetInt("Fullscreen", val ? 1 : 0);
+                PlayerPrefs.Save();
+            });
+        }
+
+        if (toggleTutorial != null)
+        {
+            toggleTutorial.isOn = PlayerPrefs.GetInt("MostrarTutorial", 1) == 1;
+            toggleTutorial.onValueChanged.RemoveAllListeners();
+            toggleTutorial.onValueChanged.AddListener(CambiarTutorial);
         }
 
         if (sliderVolumen != null)
@@ -105,6 +117,59 @@ public class MenuManager : MonoBehaviour
     {
         ActualizarProgreso();
         PrepararMarcadores();
+        AsegurarToggleTutorial();
+    }
+
+    void AsegurarToggleTutorial()
+    {
+        if (toggleTutorial != null) return;
+        if (panelOpciones == null) return;
+        GameObject go = new GameObject("ToggleTutorial");
+        go.transform.SetParent(panelOpciones.transform, false);
+        RectTransform rt = go.AddComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.sizeDelta = new Vector2(200, 30);
+        rt.anchoredPosition = new Vector2(0, -95);
+        Toggle t = go.AddComponent<Toggle>();
+        toggleTutorial = t;
+        GameObject bg = new GameObject("Background");
+        bg.transform.SetParent(go.transform, false);
+        RectTransform rtb = bg.AddComponent<RectTransform>();
+        rtb.sizeDelta = new Vector2(24, 24);
+        rtb.anchoredPosition = new Vector2(-80, 0);
+        Image ibg = bg.AddComponent<Image>();
+        ibg.color = Color.white;
+        GameObject check = new GameObject("Checkmark");
+        check.transform.SetParent(bg.transform, false);
+        RectTransform rtc = check.AddComponent<RectTransform>();
+        rtc.sizeDelta = new Vector2(16, 16);
+        Image ic = check.AddComponent<Image>();
+        ic.color = Color.black;
+        t.graphic = ic;
+        t.targetGraphic = ibg;
+        GameObject lbl = new GameObject("Label");
+        lbl.transform.SetParent(go.transform, false);
+        RectTransform rtl = lbl.AddComponent<RectTransform>();
+        rtl.sizeDelta = new Vector2(150, 30);
+        rtl.anchoredPosition = new Vector2(20, 0);
+        Text tx = lbl.AddComponent<Text>();
+        tx.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        tx.fontSize = 18;
+        tx.color = Color.white;
+        tx.alignment = TextAnchor.MiddleLeft;
+        tx.text = "TUTORIAL";
+        t.isOn = PlayerPrefs.GetInt("MostrarTutorial", 1) == 1;
+        t.onValueChanged.RemoveAllListeners();
+        t.onValueChanged.AddListener(CambiarTutorial);
+    }
+
+    public void CambiarTutorial(bool activar)
+    {
+        AudioManager.Play(Sfx.UiClick, 0.7f, activar ? 1.15f : 0.9f);
+        PlayerPrefs.SetInt("MostrarTutorial", activar ? 1 : 0);
+        PlayerPrefs.Save();
     }
 
     void ActualizarProgreso()
@@ -185,10 +250,10 @@ public class MenuManager : MonoBehaviour
                 botonesDia[i] = BuscarBoton("BtnDia" + (i + 1));
         }
 
-        if (toggleFullscreen == null)
+        if (toggleTutorial == null)
         {
-            GameObject toggleGO = BuscarGO("ToggleFullscreen");
-            if (toggleGO != null) toggleFullscreen = toggleGO.GetComponent<Toggle>();
+            GameObject tutGO = BuscarGO("ToggleTutorial");
+            if (tutGO != null) toggleTutorial = tutGO.GetComponent<Toggle>();
         }
 
         if (sliderVolumen == null)
@@ -544,12 +609,6 @@ public class MenuManager : MonoBehaviour
         AudioManager.Play(Sfx.UiClick, 0.8f, 0.9f);
         if (panelMarcadores != null) panelMarcadores.SetActive(false);
         if (panelOpciones != null) panelOpciones.SetActive(false);
-    }
-
-    public void SetFullscreen(bool value)
-    {
-        AudioManager.Play(Sfx.UiClick, 0.7f, value ? 1.2f : 1f);
-        Screen.fullScreen = value;
     }
 
     public void SetVolumen(float value)

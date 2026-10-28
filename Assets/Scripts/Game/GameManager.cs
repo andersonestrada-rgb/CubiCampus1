@@ -226,6 +226,32 @@ public class GameManager : MonoBehaviour
 
         SetMessage("DIA " + diaActual + ": meta " + Mathf.RoundToInt(configDia.umbralEficiencia) +
                    "%. Arrastra cada estudiante a su mesa", 5f);
+
+        SpawnTutorialIfNeeded();
+    }
+
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        SpawnTutorialIfNeeded();
+    }
+
+    void SpawnTutorialIfNeeded()
+    {
+        if (SceneManager.GetActiveScene().name != "GameScene") return;
+        if (PlayerPrefs.GetInt("MostrarTutorial", 1) == 0) return;
+        if (FindAnyObjectByType<TutorialDia1>() != null) return;
+        GameObject go = new GameObject("TutorialDia1");
+        go.AddComponent<TutorialDia1>();
     }
 
     void Update()

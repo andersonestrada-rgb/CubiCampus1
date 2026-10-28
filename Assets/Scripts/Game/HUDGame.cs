@@ -33,6 +33,7 @@ public class HUDGame : MonoBehaviour
     public Button btnBono;
     public Button btnPausa;
     public Button btnReanudar;
+    public Button btnReiniciar;
     public Button btnMenu;
 
     [Header("Paneles")]
@@ -45,6 +46,7 @@ public class HUDGame : MonoBehaviour
         if (btnBono != null) btnBono.onClick.AddListener(OnBono);
         if (btnPausa != null) btnPausa.onClick.AddListener(delegate { SetPause(true); });
         if (btnReanudar != null) btnReanudar.onClick.AddListener(delegate { SetPause(false); });
+        if (btnReiniciar != null) btnReiniciar.onClick.AddListener(ReiniciarDia);
         if (btnMenu != null) btnMenu.onClick.AddListener(VolverAlMenu);
 
         if (panelPausa != null) panelPausa.SetActive(false);
@@ -231,6 +233,13 @@ public class HUDGame : MonoBehaviour
         AudioManager.Play(Sfx.UiClick, 0.9f, paused ? 0.82f : 1.15f);
         game.SetPaused(paused);
         if (panelPausa != null) panelPausa.SetActive(paused);
+    }
+
+    void ReiniciarDia()
+    {
+        AudioManager.Play(Sfx.UiClick, 0.9f, 1f);
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     void VolverAlMenu()

@@ -213,99 +213,49 @@ public class DragAssigner : MonoBehaviour
         relocateMode = relocate;
         dragOffset = st.transform.position - world;
         st.BeginDrag();
-        ShowDragHighlights(st);
-    }
-
-    void ShowDragHighlights(Student st)
-    {
-        if (st == null || st.profile == null) return;
-        Seat[] seats = Object.FindObjectsOfType<Seat>(true);
-        for (int i = 0; i < seats.Length; i++)
-        {
-            Seat s = seats[i];
-            if (s == null) continue;
-            if (relocateMode && st.seat == s) { s.ClearDragHighlight(); continue; }
-            if (!s.CanAccept(st.profile)) 
-            { 
-                // No mostrar highlight para mesas que no acepta, o mostrar en gris? El requisito dice "verde para mesas válidas, amarillo/ideal para mesa ideal" - así que solo mostrar válidas/ideales
-                s.ClearDragHighlight(); 
-                continue; 
-            }
-            bool ideal = s.MatchesProfile(st.profile);
-            s.SetDragHighlight(true, ideal);
-        }
-    }
-
-    void ClearAllDragHighlights()
-    {
-        Seat[] seats = Object.FindObjectsOfType<Seat>(true);
-        for (int i = 0; i < seats.Length; i++)
-        {
-            if (seats[i] != null) seats[i].ClearDragHighlight();
-        }
     }
 
     void UpdateHover(Vector3 world)
     {
         Seat seat = FindSeat(world);
- 
+
         if (hoverSeat != null && hoverSeat != seat) 
         {
-            // Restaurar highlight de arrastre si la mesa sigue siendo válida
-            if (dragging != null && dragging.profile != null)
-            {
-                if (!(relocateMode && hoverSeat == dragging.seat) && hoverSeat.CanAccept(dragging.profile))
-                {
-                    bool ideal = hoverSeat.MatchesProfile(dragging.profile);
-                    hoverSeat.SetDragHighlight(true, ideal);
-                }
-                else
-                {
-                    hoverSeat.ClearDragHighlight();
-                }
-            }
-            else
-            {
-                hoverSeat.SetHighlight(0);
-            }
+            hoverSeat.SetHighlight(0);
+            hoverSeat.ClearDragHighlight();
         }
- 
+
         hoverSeat = seat;
- 
+
         if (seat == null || dragging == null) return;
- 
+
         if (relocateMode && dragging.seat == seat)
         {
             seat.ClearDragHighlight();
             seat.SetHighlight(0);
             return;
         }
- 
+
         if (!seat.CanAccept(dragging.profile))
         {
             seat.ClearDragHighlight();
-            seat.SetHighlight(2);                       // no se puede (sucia, apartada, llena)
-        }
-        else if (seat.MatchesProfile(dragging.profile))
-        {
-            seat.SetDragHighlight(true, true);
-            seat.SetHighlight(1);                       // mesa ideal
+            seat.SetHighlight(2);
         }
         else
         {
-            seat.SetDragHighlight(true, false);
-            seat.SetHighlight(3);                       // se puede, pero menos puntos
+            bool ideal = seat.MatchesProfile(dragging.profile);
+            seat.SetDragHighlight(true, ideal);
+            seat.SetHighlight(ideal ? 1 : 3);
         }
     }
 
     void OnRelease(Vector3 world)
     {
-        ClearAllDragHighlights();
         Seat seat = FindSeat(world);
         Student st = dragging;
         dragging = null;
         ClearHover();
- 
+
         if (st == null) return;
         if (st.state == StudentState.Leaving || st.state == StudentState.Gone) return;
 
@@ -366,24 +316,8 @@ public class DragAssigner : MonoBehaviour
     {
         if (hoverSeat != null)
         {
-            // Restaurar highlight de arrastre si aplica
-            if (dragging != null && dragging.profile != null)
-            {
-                if (!(relocateMode && hoverSeat == dragging.seat) && hoverSeat.CanAccept(dragging.profile))
-                {
-                    bool ideal = hoverSeat.MatchesProfile(dragging.profile);
-                    hoverSeat.SetDragHighlight(true, ideal);
-                }
-                else
-                {
-                    hoverSeat.ClearDragHighlight();
-                }
-            }
-            else
-            {
-                hoverSeat.SetHighlight(0);
-                hoverSeat.ClearDragHighlight();
-            }
+            hoverSeat.SetHighlight(0);
+            hoverSeat.ClearDragHighlight();
             hoverSeat = null;
         }
     }
@@ -391,7 +325,6 @@ public class DragAssigner : MonoBehaviour
     // Cancela un arrastre en curso sin penalizar (pausa, fin de turno o abandono).
     void AbortDrag()
     {
-        ClearAllDragHighlights();
         Student st = dragging;
         dragging = null;
         ClearHover();

@@ -78,6 +78,12 @@ public class Seat : MonoBehaviour
 
     // ------------------------------------------------------------------ visual
 
+    [Header("Highlight")]
+    public GameObject highlightRoot;
+    public SpriteRenderer highlightBorder;
+    bool highlightActive;
+    float highlightPulse;
+
     public void BuildVisuals()
     {
         if (fill != null) return;
@@ -88,6 +94,12 @@ public class Seat : MonoBehaviour
         // Borde (detras) y cuerpo
         border = PixelFactory.Quad("Borde", transform, Vector3.zero, size, cBorder, 2);
         fill = PixelFactory.Quad("Cuerpo", transform, Vector3.zero, size * 0.88f, cFill, 3);
+
+        // Highlight para arrastre
+        highlightRoot = new GameObject("HighlightDrag");
+        highlightRoot.transform.SetParent(transform, false);
+        highlightBorder = PixelFactory.Quad("BordeHL", highlightRoot.transform, Vector3.zero, size * 1.08f, new Color(0.3f, 1f, 0.45f), 1);
+        highlightRoot.SetActive(false);
 
         // Enchufe (rayo) en la esquina
         if (hasOutlet)
@@ -267,10 +279,41 @@ public class Seat : MonoBehaviour
 
     // ------------------------------------------------------------------ logica
 
+    public void SetDragHighlight(bool valid, bool ideal)
+    {
+        if (highlightBorder == null) return;
+        highlightActive = valid || ideal;
+        if (!highlightActive)
+        {
+            if (highlightRoot != null) highlightRoot.SetActive(false);
+            return;
+        }
+        if (highlightRoot != null) highlightRoot.SetActive(true);
+        if (ideal)
+            highlightBorder.color = new Color(0.3f, 1f, 0.45f);
+        else
+            highlightBorder.color = new Color(1f, 0.78f, 0.25f);
+    }
+
+    public void ClearDragHighlight()
+    {
+        highlightActive = false;
+        if (highlightRoot != null) highlightRoot.SetActive(false);
+    }
+
     void Update()
     {
         GameManager gm = GameManager.Instance;
         if (gm == null || !gm.IsPlaying) return;
+
+        if (highlightActive && highlightBorder != null && highlightRoot != null && highlightRoot.activeSelf)
+        {
+            highlightPulse += Time.deltaTime * 3f;
+            float a = 0.4f + Mathf.PingPong(highlightPulse, 0.4f);
+            Color c = highlightBorder.color;
+            c.a = a;
+            highlightBorder.color = c;
+        }
 
         if (blocked)
         {
